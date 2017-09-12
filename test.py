@@ -1,5 +1,8 @@
 import os
 import itertools
+from time import sleep
+import sys
+
 
 srcDirectory = "src/main/scala/"
 
@@ -39,6 +42,14 @@ class MainModule(object):
             print currentMod.getName(),currentMod.getNumInstances()
             currentMod = currentMod.getNext()
 
+    def updateInstances(self, num):
+        current = self.getHead()
+        while current:
+            current.setNumInstances(num)
+            current = current.getNext()
+
+
+
 class SubModule(MainModule):
 
 
@@ -73,6 +84,9 @@ class SubModule(MainModule):
 
     def getNumInstances(self):
         return self.numInstances
+
+    def setNumInstances(self,num):
+        self.numInstances = num
 
 def createModule(hwModule):
     hwModName = hwModule.getName()
@@ -220,10 +234,11 @@ class MainModule extends Module{
     firstHWModule = mainMod.getHead()
     name1 = firstHWModule.getName()
 
-    for i in range(numInputs):
 
-        fhand.write(name1+"1."+firstHWModule.getInputTypes().keys()[i]+":= io.input.in"+str(i))
-        fhand.write("""
+    for i in range(inputInstances):
+        for j in range(numInputs):
+            fhand.write(name1+"s1("+str(i)+")."+firstHWModule.getInputTypes().keys()[j]+":= io.input.in"+str(i)+str(j))
+            fhand.write("""
     """)
 
     checkParalleism(mainMod)
@@ -246,10 +261,26 @@ class MainModule extends Module{
     lastHWModule = mainMod.getTail()
     name2 = lastHWModule.getName()
 
-    for j in range(numOutputs):
-        fhand.write("io.output.out"+str(j)+" := "+name2+"1."+lastHWModule.getOuputTypes().keys()[j])
-        fhand.write("""
+
+
+    for i in range(outputInstances):
+        for j in range(numOutputs):
+            fhand.write("io.output.out"+str(i)+str(j)+" := "+name2+"s1("+str(i)+")."+lastHWModule.getOuputTypes().keys()[j])
+            fhand.write("""
     """)
+
+    # for j in range(numOutputs):
+    #     fhand.write("io.output.out"+str(j)+" := "+name2+"1."+lastHWModule.getOuputTypes().keys()[j])
+    #     fhand.write("""
+    # """)
+    fhand.write("""
+
+    """)
+    fhand.write("""
+    }
+    """)
+
+
 
 
 bits = int(raw_input("How many bits per clock: "))
@@ -277,6 +308,9 @@ for i in range(numHWModules):
     hwClassList[name] = SubModule(name,inputs,outputs,numInst)
 
 
+
+tail = hwClassList[HWList[len(HWList)-1]]
+
 #Inputs of 1st HW module to use as input of main module
 inputTypes = hwClassList.values()[0].inputTypes.values()
 
@@ -287,7 +321,26 @@ mainMod = MainModule(inputTypes,outputTypes)
 
 #mainMod.setHead(hwClassList[HWList[0]])
 mainMod.setHead(head)
-mainMod.setTail(hwClassList[HWList[len(HWList)-1]])
+mainMod.setTail(tail)
+
+if head.getNumInstances() != tail.getNumInstances():
+    print "Input instances don't match output instances"
+    ans = raw_input("Would you like to match instances y/n: ")
+    if ans == 'y':
+        inOut = raw_input("According to input or output instances in/out: ")
+        if inOut == 'in':
+            print "Updating instances to match input instances"
+
+            tail.numInstances = head.numInstances
+            mainMod.updateInstances(head.getNumInstances())
+        elif inOut == 'out':
+            print "Updating instances to match output instances"
+
+            head.numInstances = tail.numInstances
+            mainMod.updateInstances(tail.getNumInstances())
+
+
+
 
 #print mainMod.getHead().name
 #print mainMod.getTail().name
