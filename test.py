@@ -39,7 +39,7 @@ class MainModule(object):
     def getInternalModules(self):
         currentMod = self.head
         while(currentMod !=None):
-            print currentMod.getName(),currentMod.getNumInstances()
+            print(currentMod.getName(),currentMod.getNumInstances())
             currentMod = currentMod.getNext()
 
     def updateInstances(self, num):
@@ -111,7 +111,7 @@ def connectToNext(hwMod1):
         for (i<-0 until n){
     """
     for outputElem,inputElem in itertools.izip_longest(hwMod1.getOuputTypes(),hwMod1.getNext().getInputTypes(),fillvalue='None'):
-        print 'hello'
+        print ('hello')
 
 
 
@@ -154,7 +154,7 @@ def checkParalleism(mainMod):
         numOutputLen = len(hwMod1.getOuputTypes()) * hwMod1.getNumInstances()
         numInputLen = len(hwMod2.getInputTypes()) *  hwMod2.getNumInstances()
         if numOutputLen != numInputLen:
-            print hwMod1.getName() + " outputs don't connect to "+ hwMod2.getName() + " inputs"
+            print (hwMod1.getName() + " outputs don't connect to "+ hwMod2.getName() + " inputs")
         current = current.getNext()
 
 
@@ -245,14 +245,15 @@ class MainModule extends Module{
 
     currentElem = mainMod.getHead()
     while currentElem.getNext():
+        for i in range(inputInstances):
 
-        for outputElem,inputElem in itertools.izip_longest(currentElem.getOuputTypes(),currentElem.getNext().getInputTypes(),fillvalue='None'):
-            outName = currentElem.getName()
-            inName = currentElem.getNext().getName()
+            for outputElem,inputElem in             itertools.izip_longest(currentElem.getOuputTypes(),currentElem.getNext().getInputTypes(),fillvalue='None'):
+                outName = currentElem.getName()
+                inName = currentElem.getNext().getName()
             #print outputElem
             #print inputElem
-            fhand.write(inName+"1."+inputElem+" := " + outName+"1."+outputElem)
-            fhand.write(
+                fhand.write(inName+"s1("+str(i)+")."+inputElem+ ":= " + outName+"s1("+str(i)+")."+outputElem)
+                fhand.write(
     """
     """)
         currentElem = currentElem.getNext()
@@ -292,7 +293,7 @@ HWList = []
 hwClassList = {}
 head  = SubModule(None,None,None,None)
 
-print "Input .scala files to be connected in specefied order"
+print("Input .scala files to be connected in specefied order")
 for i in range(numHWModules):
 
     name = raw_input("HW Module "+str(i+1)+": ")
@@ -324,22 +325,22 @@ mainMod.setHead(head)
 mainMod.setTail(tail)
 
 if head.getNumInstances() != tail.getNumInstances():
-    print "Input instances don't match output instances"
+    print("Input instances don't match output instances")
     ans = raw_input("Would you like to match instances y/n: ")
     if ans == 'y':
         inOut = raw_input("According to input or output instances in/out: ")
         if inOut == 'in':
-            print "Updating instances to match input instances"
+            print("Updating instances to match input instances")
 
             tail.numInstances = head.numInstances
             mainMod.updateInstances(head.getNumInstances())
         elif inOut == 'out':
-            print "Updating instances to match output instances"
+            print("Updating instances to match output instances")
 
             head.numInstances = tail.numInstances
             mainMod.updateInstances(tail.getNumInstances())
 
-
+#TODO: Middle hw modules not checked if instances of input and output are the same
 
 
 #print mainMod.getHead().name
