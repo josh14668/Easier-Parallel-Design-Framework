@@ -1,0 +1,3 @@
+IN->mod1.all.in.[0:2]
+IN->mod0.all.in.all
+mod2.all.out.all->OUT

@@ -1,1 +1,3 @@
-x1:out:1,y1:
+IN->mod0.all.in.all
+mod1.all.out.all->OUT
+mod0.all.out.all->mod1.all.in.all
