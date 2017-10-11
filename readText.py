@@ -65,24 +65,24 @@ def parseTx(fname,HWList):
 
     inputList = []
     for idx,line in enumerate(fhand):
-        if "IN" in line:
-            s = line[line.find("->")+2:].rstrip()
-            print(line)
-            print(s)
-            s = s.split(".")
-            print(s)
-            whichMod = s[0][3]
-            whichInstances = s[1]
-            whichInputs = s[3]
-            print("Which module:" + whichMod)
-            print("Which instances:"+whichInstances)
-            print("Which Inputs: " + whichInputs)
-
-            hwMod = HWList[int(whichMod)]
-            print(hwMod.getName())
-            if len(whichInstances) == 1:
-                print("this is a number")
-            print("++++++++++++++++++++++++++++++++++")
+        # if "IN" in line:
+        #     s = line[line.find("->")+2:].rstrip()
+        #     print(line)
+        #     print(s)
+        #     s = s.split(".")
+        #     print(s)
+        #     whichMod = s[0][3]
+        #     whichInstances = s[1]
+        #     whichInputs = s[3]
+        #     print("Which module:" + whichMod)
+        #     print("Which instances:"+whichInstances)
+        #     print("Which Inputs: " + whichInputs)
+        #
+        #     hwMod = HWList[int(whichMod)]
+        #     print(hwMod.getName())
+        #     if len(whichInstances) == 1:
+        #         print("this is a number")
+        #     print("++++++++++++++++++++++++++++++++++")
         # if "OUT" in line:
         #     s = line[:line.find("->")]
         #     s = s.split(".")
@@ -95,7 +95,20 @@ def parseTx(fname,HWList):
         #     print(whichInputs)
         #
         #     hwMod = HWList[int(whichMod)]
-
+        if 'IN' not in line:
+            if 'OUT' not in line:
+                s = line[:line.find("->")]
+                s = s.split(".")
+                print(s)
+                s2 = line[line.find("->")+2:]
+                print(s2)
+                whichMod = s[0][3]
+                whichInstances = s[1]
+                whichInputs = s[3]
+                print(whichMod)
+                print(whichInstances)
+                print(whichInputs)
+                print("+++++++++++++++++++++++++++=")
 
 def getInput(text):
     inp = []
@@ -118,10 +131,26 @@ def getConns(text):
 
     for line in text:
         if ('IN' not in line):
-            if('OUT' not in line):
-                conns.append(line.rstrip())
+            if ('OUT' not in line):
+                if('->' in line):
+
+                    conns.append(line.rstrip())
 
     return conns
+
+def readModules(text):
+    li = []
+    for line in text:
+        if 'IN' in line:
+            break
+        s= line.rstrip()
+        s = s.split(':')
+
+        li.append(s)
+
+    return li
+
+
 
 
 def generateMainModule(HWList,structuretxt):
@@ -130,7 +159,9 @@ def generateMainModule(HWList,structuretxt):
     ins = getInput(structuretxt)
     outs = getOutput(structuretxt)
     conns = getConns(structuretxt)
-
+    #print(ins)
+    #print(outs)
+    #print(conns)
 
 
     fhand.write("""
@@ -143,14 +174,15 @@ class inputPacket extends Bundle{
     """)
 
     inList = []
-    count = 0
-    for line in ins:
-        count +=1
+    inCount =0
+    for count,line in enumerate(ins):
+
         s = line[line.find("->")+2:].rstrip()
         s = s.split(".")
         whichMod = s[0][3]
         whichInstances = s[1]
         whichInputs = s[3]
+        #print(whichInputs)
 
         hwBlock = HWList[int(whichMod)]
 
@@ -160,40 +192,38 @@ class inputPacket extends Bundle{
                 for i in range(hwBlock.numInstances):
                     for j in range(hwBlock.getNumInputs()):
                         fhand.write("""
-    val in"""+str(i)+str(j)+""" = """+str(hwBlock.inputTypes.values()[j])
+    val in"""+str(inCount)+""" = """+str(hwBlock.inputTypes.values()[j])
                     )
-                        ins =s[0] +"(" + str(i) +")."+hwBlock.inputTypes.keys()[j]+ ":= io.input.in"+str(i)+str(j)
+                        ins =s[0] +"(" + str(i) +")."+hwBlock.inputTypes.keys()[j]+ ":= io.input.in"+str(inCount)
                         inList.append(ins)
+                        inCount +=1
 
             elif ":" in whichInputs:
+                #print("True")
                 num1 = int(whichInputs[1])
                 num2 = int(whichInputs[3])
-                totalInputs = num2-num1
+                totalInputs = (num2-num1)+1
+                #print(num1,num2)
+                #print("total Inputs:" + str(totalInputs))
 
-                for i in range(hwBlock.nuInstances):
+                totalInsCount = 0
+                for i in range(hwBlock.numInstances):
                     for j in range(hwBlock.getNumInputs()):
+                        totalInsCount = totalInsCount+1
+                        fhand.write("""
+    val in"""+str(inCount)+""" = """+str(hwBlock.inputTypes.values()[j])
+                                    )
+                        ins = s[0]+"("+str(i)+")"+"."+hwBlock.inputTypes.keys()[j]+":=io.input.in"+str(inCount)
+                        inCount+=1
+                        inList.append(ins)
+
+                        if totalInsCount>=totalInputs:
+
+                            break
 
 
 
-                for i in range(num1,num2):
-                    fhand.write(s[0] + "("+)
 
-                print("Hello")
-                #TODO:Fill up
-
-        if len(whichInstances)==1:
-            if len(whichInputs) == :
-                print("n")
-            else:
-                num1 = int(whichInputs[1])
-                num2 = int(whichInstance[3])
-                for i in range(num1,num2):
-                    #TODO:finish this part
-                    print("n")
-                fhand.write(s[0]+"("+str(whichInstance))
-
-            fhand.write(s[0] +"("+whichInstances+")" +"."+hwBlock.get)
-            print("n")
     fhand.write("""
     }""")
 
@@ -203,7 +233,7 @@ class outputPacket extends Bundle{
         """)
 
     outList = []
-    for line in outs:
+    for count,line in enumerate(outs):
         s = line[:line.find("->")].rstrip()
         s = s.split(".")
         whichMod = s[0][3]
@@ -211,16 +241,17 @@ class outputPacket extends Bundle{
         whichInputs = s[3]
 
         hwBlock = HWList[int(whichMod)]
-
+        outCount = 0
         if whichInstances == "all":
             if whichInputs == "all":
 
                 for j in range(hwBlock.numInstances):
                     for k in range(hwBlock.getNumOutputs()):
                         fhand.write("""
-    val out"""+str(j)+str(k)+""" = """ + str(hwBlock.outputTypes.values()[k])
+    val out"""+str(outCount)+""" = """ + str(hwBlock.outputTypes.values()[k])
                   )
-                        out = "io.output.out" + str(j)+str(k) +":=" + s[0] +"(" + str(j) +")."+hwBlock.outputTypes.keys()[k]
+                        out = "io.output.out" + str(outCount) +":=" + s[0] +"(" + str(j) +")."+hwBlock.outputTypes.keys()[k]
+                        outCount += 1
                         outList.append(out)
 
     fhand.write("""
@@ -260,7 +291,39 @@ class MainModule extends Module{
     """)
 
     for line in conns:
-        print(line)
+        sOut = line[:line.find("->")]
+        sOut = sOut.split(".")
+        sIn = line[line.find("->")+2:]
+        sIn = sIn.split(".")
+        print(sOut),
+        print("->"),
+        print(sIn)
+
+        whichModOut = sOut[0][3]
+        whichInstancesOut = sOut[1]
+        whichOutputs = sOut[3]
+        print(whichModOut,whichInstancesOut,whichOutputs)
+
+        whichModIn = sIn[0][3]
+        whichInstancesIn = sIn[1]
+        whichInputs = sIn[3]
+        print(whichModIn,whichInstancesIn,whichInputs)
+
+        HWBlockOutput= HWList[int(whichModOut)]
+        HWBlockInput= HWList[int(whichModIn)]
+
+
+        if whichInstancesOut == 'all' and len(whichInstancesIn) == 1:
+            for i in range(int(HWBlockOutput.getNumInstances())):
+                for j in range(int(HWBlockInput.getNumInputs())):
+                    fhand.write(sIn[0]+"("+whichInstancesIn+")."+HWBlockInput.inputTypes.keys()[j]+":=" +sOut[0] + "("+str(i)+")."+HWBlockOutput.inputTypes.keys()[j])
+                    fhand.write(
+        """
+    """)
+
+
+
+    #print(conns)
 
 
 #     for i in range(inputInstances):
@@ -283,22 +346,27 @@ class MainModule extends Module{
 
 
 # bits = int(raw_input("How many bits per clock: "))
-numHWModules = int(raw_input("How Many Modules: "))
+text = storeTxt("struc2.txt")
 
+modules = readModules(text)
+numHWModules = len(modules)
+
+#print(modules)
 HWList = []
 
-print("Input .scala files to be connected in specefied order")
-for i in range(numHWModules):
+for i in modules:
 
-    name = raw_input("HW Module "+str(i+1)+": ")
-    numInst = int(raw_input("How many instances: "))
+    name = i[0]
+    numInst = int(i[1])
     inOut = inputsOutputs(srcDirectory + name +".scala")
     inputs = inOut[0]
     outputs = inOut[1]
 
     HWList.append(Module(name,inputs,outputs,numInst))
 
-text = storeTxt("structure.txt")
-#generateMainModule(HWList,text)
-
-parseTx("struc2.txt",HWList)
+#text = storeTxt("struc2.txt")
+#print(text)
+generateMainModule(HWList,text)
+#print(getConns(text))
+#print(readModules(text))
+#parseTx("struc2.txt",HWList)

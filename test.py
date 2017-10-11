@@ -53,12 +53,13 @@ class MainModule(object):
 class SubModule(MainModule):
 
 
-    def __init__(self,name,inputTypes,outputTypes,numInstances):
+    def __init__(self,name,inputTypes,outputTypes,numInstances,outPerCycle):
         self.name = name
         self.inputTypes = inputTypes
         self.outputTypes = outputTypes
         self.next = None
         self.numInstances = numInstances
+        self.outPerCycle = outPerCycle
 
     def getNext(self):
         return self.next
@@ -297,13 +298,14 @@ print("Input .scala files to be connected in specefied order")
 for i in range(numHWModules):
 
     name = raw_input("HW Module "+str(i+1)+": ")
+    outPerCycle = int(raw_input("Max output generated per cycle: "))
     numInst = int(raw_input("How many instances: "))
     HWList.append(name)
     inOut = inputsOutputs(srcDirectory + name +".scala")
     inputs = inOut[0]
     outputs = inOut[1]
     if i==0:
-        head = SubModule(name,inputs,outputs,numInst)
+        head = SubModule(name,inputs,outputs,numInst,outPerCycle)
     else:
         head.append(SubModule(name,inputs,outputs,numInst))
     hwClassList[name] = SubModule(name,inputs,outputs,numInst)

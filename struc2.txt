@@ -1,3 +1,8 @@
+VectorAdder:1
+VectorAdder:2
+VectorAdder:1
 IN->mod1.all.in.[0:2]
 IN->mod0.all.in.all
 mod2.all.out.all->OUT
+mod0.all.out.all->mod1.1.in.1
+mod1.all.out.all->mod2.all.in.all
